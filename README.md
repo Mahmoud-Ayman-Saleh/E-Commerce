@@ -2,6 +2,11 @@
 
 A flexible console-based e-commerce system built in Java that extends the original requirements with role-based access control and comprehensive product management capabilities.
 
+##  Live Demo
+
+Watch the complete system in action:
+[Watch Demo](https://youtu.be/KMU44-V_d_c)
+
 ## Project Overview
 
 This project was developed as part of the **Fawry Quantum Internship Challenge** with enhanced functionality beyond the original specifications. While the original PDF outlined basic e-commerce features, this implementation introduces a more dynamic and flexible system with separate **Admin** and **Customer** panels, making it suitable for real-world e-commerce scenarios.
