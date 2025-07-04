@@ -1,0 +1,5 @@
+Mahmoud Ayman|18.019999999999982
+Ahmed Nady|500.0
+Mazen Mahmoud|500.0
+Ahmed Hassan|2000.0
+Sarah Ali|450.0
