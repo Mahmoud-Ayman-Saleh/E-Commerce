@@ -30,7 +30,7 @@ public class ECommerceSystem
             System.out.print("Choose your role: ");
             
             int choice = scanner.nextInt();
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
             
             switch (choice)
             {
@@ -62,7 +62,7 @@ public class ECommerceSystem
             System.out.print("Choose option: ");
             
             int choice = scanner.nextInt();
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
             
             switch (choice)
             {
@@ -119,7 +119,7 @@ public class ECommerceSystem
         
         System.out.print("Does it expire? (true/false): ");
         boolean expires = scanner.nextBoolean();
-        scanner.nextLine(); // consume newline
+        scanner.nextLine();
         
         Product newProduct;
         if (expires)
@@ -165,7 +165,7 @@ public class ECommerceSystem
         
         System.out.print("Select product to edit (number): ");
         int index = scanner.nextInt() - 1;
-        scanner.nextLine(); // consume newline
+        scanner.nextLine();
         
         if (index < 0 || index >= products.size())
         {
@@ -333,5 +333,225 @@ public class ECommerceSystem
         System.out.println("Product '" + removed.getName() + "' removed successfully!");
     }
     
-
+    private static void customerPanel()
+    {
+        
+        if (customers.isEmpty())
+        {
+            System.out.println("No customers available.");
+            return;
+        }
+        
+        System.out.println("Available customers:");
+        for (int i = 0; i < customers.size(); i++)
+        {
+            Customer c = customers.get(i);
+            System.out.println((i + 1) + ". " + c.getName() + " (Balance: $" + c.getBalance() + ")");
+        }
+        
+        System.out.print("Select customer (number): ");
+        int customerIndex = scanner.nextInt() - 1;
+        scanner.nextLine();
+        
+        if (customerIndex < 0 || customerIndex >= customers.size())
+        {
+            System.out.println("Invalid selection.");
+            return;
+        }
+        
+        Customer customer = customers.get(customerIndex);
+        Cart cart = new Cart();
+        
+        while (true)
+        {
+            System.out.println("\n=== CUSTOMER PANEL - " + customer.getName() + " ===");
+            System.out.println("Balance: $" + customer.getBalance());
+            System.out.println("1. View Available Products");
+            System.out.println("2. Add Product to Cart");
+            System.out.println("3. View Cart");
+            System.out.println("4. Checkout");
+            System.out.println("5. Back to Main Menu");
+            System.out.print("Choose option: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+            
+            switch (choice)
+            {
+                case 1:
+                    viewAvailableProducts();
+                    break;
+                case 2:
+                    addToCart(cart);
+                    break;
+                case 3:
+                    viewCart(cart);
+                    break;
+                case 4:
+                    checkout(customer, cart);
+                    break;
+                case 5:
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+    
+    private static void viewAvailableProducts()
+    {
+        if (products.isEmpty())
+        {
+            System.out.println("No products available.");
+            return;
+        }
+        
+        System.out.println("\n=== AVAILABLE PRODUCTS ===");
+        for (int i = 0; i < products.size(); i++)
+        {
+            Product product = products.get(i);
+            if (product.getQuantity() > 0 && !product.isExpired())
+            {
+                System.out.println((i + 1) + ". " + product.getName() + " - $" + product.getPrice() + " (Available: " + product.getQuantity() + ")");
+            }
+        }
+    }
+    
+    private static void addToCart(Cart cart)
+    {
+        if (products.isEmpty())
+        {
+            System.out.println("No products available.");
+            return;
+        }
+        
+        viewAvailableProducts();
+        
+        System.out.print("Select product to add (number): ");
+        int productIndex = scanner.nextInt() - 1;
+        
+        if (productIndex < 0 || productIndex >= products.size())
+        {
+            System.out.println("Invalid selection.");
+            return;
+        }
+        
+        Product product = products.get(productIndex);
+        
+        if (product.getQuantity() == 0)
+        {
+            System.out.println("Product is out of stock.");
+            return;
+        }
+        
+        if (product.isExpired())
+        {
+            System.out.println("Product is expired.");
+            return;
+        }
+        
+        System.out.print("Enter quantity: ");
+        int quantity = scanner.nextInt();
+        
+        cart.add(product, quantity);
+    }
+    
+    private static void viewCart(Cart cart)
+    {
+        if (cart.isEmpty())
+        {
+            System.out.println("Cart is empty.");
+            return;
+        }
+        
+        System.out.println("\n=== CART CONTENTS ===");
+        for (CartItem item : cart.getItems())
+        {
+            System.out.println(item.getQuantity() + "x " + item.getProduct().getName() + " - $" + item.getTotalPrice());
+        }
+        System.out.println("Subtotal: $" + cart.getSubtotal());
+    }
+    
+    private static void checkout(Customer customer, Cart cart)
+    {
+        if (cart.isEmpty())
+        {
+            System.out.println("Error: Cart is empty");
+            return;
+        }
+        
+        // Check stock and expiry
+        for (CartItem item : cart.getItems())
+        {
+            Product product = item.getProduct();
+            if (product.getQuantity() < item.getQuantity())
+            {
+                System.out.println("Error: " + product.getName() + " is out of stock");
+                return;
+            }
+            if (product.isExpired())
+            {
+                System.out.println("Error: " + product.getName() + " is expired");
+                return;
+            }
+        }
+        
+        // Calculate totals
+        double subtotal = cart.getSubtotal();
+        List<IShippable> IshippableItems = new ArrayList<>();
+        
+        for (CartItem item : cart.getItems())
+        {
+            if (item.getProduct().isRequiresShipping())
+            {
+                for (int i = 0; i < item.getQuantity(); i++)
+                {
+                    IshippableItems.add((IShippable) item.getProduct());
+                }
+            }
+        }
+        
+        double shippingFee = ShippingService.calculateShippingCost(IshippableItems);
+        double totalAmount = subtotal + shippingFee;
+        
+        if (customer.getBalance() < totalAmount)
+        {
+            System.out.println("Error: Insufficient balance. Required: $" + totalAmount + ", Available: $" + customer.getBalance());
+            return;
+        }
+        
+        // Process payment
+        customer.deductBalance(totalAmount);
+        
+        // Update product quantities
+        for (CartItem item : cart.getItems())
+        {
+            item.getProduct().decreaseQuantity(item.getQuantity());
+        }
+        
+        // Save updated data
+        DatabaseManager.saveProducts(products);
+        DatabaseManager.saveCustomers(customers);
+        
+        // Print receipt
+        if (!IshippableItems.isEmpty())
+        {
+            ShippingService.ship(IshippableItems);
+        }
+        
+        System.out.println("** Checkout receipt **");
+        for (CartItem item : cart.getItems())
+        {
+            System.out.println(item.getQuantity() + "x " + item.getProduct().getName() + " " + item.getTotalPrice());
+        }
+        System.out.println("----------------------");
+        System.out.println("Subtotal " + subtotal);
+        System.out.println("Shipping " + shippingFee);
+        System.out.println("Amount " + totalAmount);
+        System.out.println("Customer balance after payment: $" + customer.getBalance());
+        System.out.println("END.");
+        
+        cart.clear();
+        System.out.println("Checkout completed successfully!");
+    }
 }
