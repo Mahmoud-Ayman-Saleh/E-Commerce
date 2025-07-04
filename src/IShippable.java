@@ -1,4 +1,4 @@
-interface InnerShippable
+interface IShippable
 {
     String getName();
     double getWeight();
